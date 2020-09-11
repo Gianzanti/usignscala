@@ -1,0 +1,21 @@
+{
+  //   "env": {
+  //     "browser": false,
+  //     "es2020": true,
+  //     "node": true
+  //   },
+  //   "extends": ["standard"],
+  "extends": ["eslint:recommended", "plugin:@typescript-eslint/recommended"],
+  "parser": "@typescript-eslint/parser",
+  "parserOptions": {
+    "ecmaVersion": 11,
+    "sourceType": "module",
+    "project": "./tsconfig.json"
+  },
+  "plugins": ["@typescript-eslint", "eslint-plugin-tsdoc"],
+  "rules": {
+    "semi": ["error", "never"],
+    "quotes": [2, "single"],
+    "tsdoc/syntax": "warn"
+  }
+}
