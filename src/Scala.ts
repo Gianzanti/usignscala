@@ -1,15 +1,8 @@
 import { AxiosResponse } from 'axios'
 import { API  } from './api'
-// import { Tags } from './tags'
-// import { DisplayGroups } from './displayGroups'
-// import { Displays } from './displays'
-// import { Schedules } from './schedules'
-// import { CMSResponse } from './entity'
-// import { Playlists } from './playlists'
-// import { Layouts } from './layouts'
-// import { Medias } from './medias'
-// import { Permissions } from './permissions'
-// import { Widgets } from './widgets'
+import { Network } from './network'
+import { User, UserProperties } from './user'
+import { Playlists } from './playlists'
 
 interface ScalaCredentials {
     /** username */
@@ -19,83 +12,49 @@ interface ScalaCredentials {
     password: string;
 }
 
-interface ScalaDTO extends ScalaCredentials {
-    /** Scala CMS url */
-    url: string;
+interface ScalaServerTime {
+    timestamp: number;
+    datetime: string;
+    gtmDatetime: string;
+    gtmTimestamp: number;
+    localDatetime: string;
 }
 
 interface ScalaLoginResponse {
-    status: string;
-    apiToken: string;
-    version: number;
-    user: {
-        id: number;
-        username: string;
-        firstname: string;
-        lastname: string;
-        emailaddress: string;
-        dateFormat: string;
-        timeFormat: string;
-        name: string;
-        language: string;
-        languageCode: string;
-        lastLogin: string; // '2019-05-28 19:47:00',
-        canChangePassword: boolean;
-        forcePasswordChange: boolean;
-        workgroup?: string;
-        isSuperAdministrator: boolean;
-        isAutoMediaApprover: boolean;
-        isAutoMessageApprover: boolean;
-        receiveEmailAlerts: boolean;
-        isWebserviceUser: boolean;
-        enabled: boolean;
-        receiveApprovalEmails: boolean;
-        authenticationMethod: string;
-        passwordLastChanged: string; // '2016-06-14 16:08:01',
-    };
-    resources: string[];
+    status?: string;
+    apiToken?: string;
+    version?: number;
+    user?: User
+    userProperties?: UserProperties[]
+    resources?: string[];
+    lastLogonToNetworkId?: number;
+    token?: string;
+    apiLicenseToken?: string;
+    keepAlive?: true,
+    licenses?: string[];
+    serverTime?: ScalaServerTime;
+    ldapEnabled?: false;
+    network?: Network
 }
 
 export interface ScalaDef {
-    // tags: Tags;
-    // displaygroups: DisplayGroups;
-    // displays: Displays;
-    // schedules: Schedules;
-    // playlists: Playlists;
-    // layouts: Layouts;
-    // medias: Medias;
-    // permissions: Permissions;
-    // widgets: Widgets
+    playlists: Playlists;
 }
 
 export class Scala implements ScalaDef {
     private credentials: ScalaCredentials;
+    private properties: ScalaLoginResponse
     public api: API;
-    // public tags: Tags;
-    // public displaygroups: DisplayGroups
-    // public displays: Displays
-    // public schedules: Schedules
-    // public playlists: Playlists
-    // public layouts: Layouts
-    // public medias: Medias
-    // public permissions: Permissions
-    // public widgets: Widgets
+    public playlists: Playlists
 
-    public constructor({ url, ...credentials }: ScalaDTO) {
-        this.api = new API(url)
+    public constructor(url: string, username: string, password: string) {
+        this.api = new API(`${url}/cm/api/rest/`)
         this.credentials = {
-            ...credentials,
+            username,
+            password
         }
-
-        // this.tags = new Tags(this)
-        // this.displaygroups = new DisplayGroups(this)
-        // this.displays = new Displays(this)
-        // this.schedules = new Schedules(this)
-        // this.playlists = new Playlists(this)
-        // this.layouts = new Layouts(this)
-        // this.medias = new Medias(this)
-        // this.permissions = new Permissions(this)
-        // this.widgets = new Widgets(this)
+        this.properties = {}
+        this.playlists = new Playlists(this)
     }
 
     /**
@@ -105,17 +64,16 @@ export class Scala implements ScalaDef {
     public async login(): Promise<boolean> {
         if (this.api.getToken()) return true
 
-        const endPoint = '/cm/api/rest/auth/login'
-        
-        const resp = await this.api.post<
-            ScalaLoginResponse,
-            ScalaCredentials
-        >(endPoint, this.credentials)
+        const endPoint = 'auth/login'
+        const resp = await this.api.post<ScalaLoginResponse>(endPoint, this.credentials)
 
         if (resp.status === 200) {
             if (resp.data.status === 'login.success') {
-                this.api.setToken(resp.data.apiToken)
-                return true
+                this.properties = resp.data
+                if (resp.data.apiToken) {
+                    this.api.setToken(resp.data.apiToken)
+                    return true
+                }
             }
         }
         this.threatError(resp)
@@ -128,10 +86,8 @@ export class Scala implements ScalaDef {
     public async logout(): Promise<boolean> {
         if (!this.api.getToken()) return true
 
-        const endPoint = '/cm/api/rest/auth/logout'
-        
+        const endPoint = 'auth/logout'
         const resp = await this.api.post<ScalaLoginResponse>(endPoint)
-
         if (resp.status === 200) {
             this.api.removeToken()
             return true
@@ -146,7 +102,7 @@ export class Scala implements ScalaDef {
      * @param resp - The failed axios response 
      */
     private threatError(resp: AxiosResponse): never {
-        if (resp.data.message) throw new Error(resp.data.message)
+        if (resp.data.status) throw new Error(resp.data.status)
         throw new Error(resp.statusText)
     }
 }

@@ -1,16 +1,18 @@
 import axios, { AxiosInstance, AxiosPromise } from 'axios'
-import qs from 'qs'
+import { ScalaCriteria } from './entity'
 
-interface XiboErrorData {
-    [property: string]: string;
+export interface ScalaErrorResponse {
+    code: string;
+    description: string;
+    faultFrom: string;
+    httpErrorCode: number;
+    validationErrors: ScalaValidationErrorResponse[];
 }
 
-export interface XiboErrorResponse {
-    error: {
-        message: string;
-        code: number;
-        data: XiboErrorData;
-    };
+export interface ScalaValidationErrorResponse {
+    fieldName: string;
+    reason: string;
+    value: string;
 }
 
 export class API {
@@ -26,16 +28,14 @@ export class API {
         this.ax = axios.create({
             baseURL,
             timeout: 10000,
-            headers: {
-                common: {
-                    'Content-Type': 'application/json',
-                    Accept: 'application/json',
-                },
-            },
             validateStatus: (status) => {
                 return status < 500
             }
         })
+        this.ax.defaults.headers.post['Accept'] = 'application/json'
+        this.ax.defaults.headers.get['Accept'] = 'application/json'
+        this.ax.defaults.headers.post['Content-Type'] = 'application/json'
+        this.ax.defaults.headers.get['Content-Type'] = 'application/json'
 
         // this.ax.interceptors.response.use(res => {
         //     // eslint-disable-next-line no-console
@@ -65,22 +65,16 @@ export class API {
     }
 
     /**
-     * Performs a GET action in the provided url with the
-     * params as C. The expected response will be of
-     * the type provided as R
+     * Performs a GET action in the provided url. The 
+     * expected response will be an R
      * 
      * @typeParam R - Defines the return type
-     * @typeParam C - Defines the search criteria type
      * 
      * @param url - the endpoint to point the get action
      * @param criteria - optional criteria to get items
      */
-    public get<R, C = null>(url: string, criteria?: C): AxiosPromise<R> {
-        return this.ax({
-            method: 'GET',
-            url,
-            params: criteria || undefined,
-        })
+    public get<R>(url: string, criteria?: ScalaCriteria): AxiosPromise<R> {
+        return this.ax.get(url, {params: criteria})
     }
 
     /**
@@ -89,17 +83,12 @@ export class API {
      * the type provided as R
      * 
      * @typeParam R - Defines the return type
-     * @typeParam D - Defines the type of the data sent
      * 
      * @param url - the endpoint to point the POST action
      * @param data - optional information to send in the POST
      */
-    public post<R, D = null>(url: string, data?: D): AxiosPromise<R> {
-        return this.ax({
-            method: 'POST',
-            url,
-            data: data || undefined,
-        })
+    public post<R>(url: string, data?: unknown): AxiosPromise<R> {
+        return this.ax.post(url, data)
     }
 
     /**
@@ -108,17 +97,12 @@ export class API {
    * the type provided as R
    * 
    * @typeParam R - Defines the return type
-   * @typeParam D - Defines the type of the information sent
    * 
    * @param url - the endpoint to point the PUT action
    * @param data - optional information to send in the PUT
    */
-    public put<R, D>(url: string, data: D): AxiosPromise<R> {
-        return this.ax({
-            method: 'PUT',
-            url,
-            data: data || undefined,
-        })
+    public put<R>(url: string, data: unknown): AxiosPromise<R> {
+        return this.ax.put(url, data)
     }
 
     /**
@@ -128,10 +112,7 @@ export class API {
    * @param url - the endpoint to point the PUT action
    */
     public delete<R>(url: string): AxiosPromise<R> {
-        return this.ax({
-            method: 'DELETE',
-            url,
-        })
+        return this.ax.delete(url)
     }
 }
 
