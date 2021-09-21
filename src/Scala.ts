@@ -1,57 +1,57 @@
 import { AxiosResponse } from 'axios'
-import { API  } from './api'
+import { API } from './api'
 import { Network } from './network'
 import { User, UserProperties } from './user'
 import { Playlists } from './playlists'
 
 interface ScalaCredentials {
     /** username */
-    username: string;
+    username: string
 
     /** password */
-    password: string;
+    password: string
 }
 
 interface ScalaServerTime {
-    timestamp: number;
-    datetime: string;
-    gtmDatetime: string;
-    gtmTimestamp: number;
-    localDatetime: string;
+    timestamp: number
+    datetime: string
+    gtmDatetime: string
+    gtmTimestamp: number
+    localDatetime: string
 }
 
 interface ScalaLoginResponse {
-    status?: string;
-    apiToken?: string;
-    version?: number;
+    status?: string
+    apiToken?: string
+    version?: number
     user?: User
     userProperties?: UserProperties[]
-    resources?: string[];
-    lastLogonToNetworkId?: number;
-    token?: string;
-    apiLicenseToken?: string;
-    keepAlive?: true,
-    licenses?: string[];
-    serverTime?: ScalaServerTime;
-    ldapEnabled?: false;
+    resources?: string[]
+    lastLogonToNetworkId?: number
+    token?: string
+    apiLicenseToken?: string
+    keepAlive?: true
+    licenses?: string[]
+    serverTime?: ScalaServerTime
+    ldapEnabled?: false
     network?: Network
 }
 
 export interface ScalaDef {
-    playlists: Playlists;
+    playlists: Playlists
 }
 
 export class Scala implements ScalaDef {
-    private credentials: ScalaCredentials;
+    private credentials: ScalaCredentials
     private properties: ScalaLoginResponse
-    public api: API;
+    public api: API
     public playlists: Playlists
 
     public constructor(url: string, username: string, password: string) {
         this.api = new API(`${url}/cm/api/rest/`)
         this.credentials = {
             username,
-            password
+            password,
         }
         this.properties = {}
         this.playlists = new Playlists(this)
@@ -65,7 +65,10 @@ export class Scala implements ScalaDef {
         if (this.api.getToken()) return true
 
         const endPoint = 'auth/login'
-        const resp = await this.api.post<ScalaLoginResponse>(endPoint, this.credentials)
+        const resp = await this.api.post<ScalaLoginResponse>(
+            endPoint,
+            this.credentials,
+        )
 
         if (resp.status === 200) {
             if (resp.data.status === 'login.success') {
@@ -79,9 +82,8 @@ export class Scala implements ScalaDef {
         this.threatError(resp)
     }
 
-
     /**
-     * 
+     *
      */
     public async logout(): Promise<boolean> {
         if (!this.api.getToken()) return true
@@ -95,11 +97,10 @@ export class Scala implements ScalaDef {
         this.threatError(resp)
     }
 
-
     /**
      * Throw errors based on the axios response
-     * 
-     * @param resp - The failed axios response 
+     *
+     * @param resp - The failed axios response
      */
     private threatError(resp: AxiosResponse): never {
         if (resp.data.status) throw new Error(resp.data.status)

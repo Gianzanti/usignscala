@@ -27,7 +27,7 @@ export class API {
     public constructor(baseURL: string) {
         this.ax = axios.create({
             baseURL,
-            timeout: 10000,
+            // timeout: 10000,
             validateStatus: (status) => {
                 return status < 500
             }
