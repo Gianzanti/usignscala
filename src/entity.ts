@@ -231,7 +231,7 @@ export abstract class Entity<R, I, U> {
         const resp = await this.server.api.put<R & ScalaErrorResponse & ScalaUpdateResponse>(url, content)
         if (resp.status === 200) {
             if (resp.data.value) {
-                console.log('Responde Data [Update]:', resp.data)
+                // console.log('Responde Data [Update]:', resp.data)
                 if (resp.data.value.toUpperCase() === 'DONE') {
                     return this.get(id)
                 }
@@ -268,7 +268,7 @@ export abstract class Entity<R, I, U> {
      * @param resp - The failed axios response 
      */
     protected dealWithError(resp: AxiosResponse): never {
-        console.log('Error:', resp.data.status)
+        // console.error('Error:', resp.data.status)
         if (resp.data.status) throw new Error(resp.data.status)
         throw new Error(resp.statusText)
     }

@@ -24,9 +24,9 @@
         "build": "tsc -p ."
     },
     "devDependencies": {
-        "@types/node": "^16.9.4",
-        "@typescript-eslint/eslint-plugin": "4.31.2",
-        "@typescript-eslint/parser": "^4.31.2",
+        "@types/node": "^16.10.1",
+        "@typescript-eslint/eslint-plugin": "4.32.0",
+        "@typescript-eslint/parser": "^4.32.0",
         "eslint": "7.32.0",
         "eslint-config-standard": "^16.0.3",
         "eslint-plugin-import": "^2.24.2",
@@ -38,15 +38,5 @@
     },
     "dependencies": {
         "axios": "^0.21.4"
-    },
-    "prettier": {
-        "semi": false,
-        "singleQuote": true,
-        "trailingComma": "all",
-        "tabWidth": 4,
-        "quoteProps": "consistent",
-        "bracketSpacing": true,
-        "jsxSingleQuote": true,
-        "arrowParens": "avoid"
     }
 }
